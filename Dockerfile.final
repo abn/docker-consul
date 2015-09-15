@@ -1,11 +1,10 @@
 FROM scratch
 MAINTAINER Arun Neelicattu <arun.neelicattu@gmail.com>
 
-ADD ./bin/consul /consul
-ADD ./rootfs/lib64 /lib64
-ADD ./rootfs/data /data
+COPY ./rootfs /
 
-VOLUME /data
+VOLUME ["/etc/consul", "/var/lib/consul", "/usr/share/consul-ui"]
+
 EXPOSE \
     53/tcp 53/udp \
     8300/tcp \
@@ -15,5 +14,9 @@ EXPOSE \
     8500/tcp \
     8600/tcp 8600/udp
 
-ENTRYPOINT ["/consul"]
-CMD ["agent", "-server", "-bootstrap-expect", "1","-data-dir", "/data"]
+ENTRYPOINT ["/usr/bin/consul", \
+    "agent", \
+    "-config-dir=/etc/consul", \
+    "-data-dir=/var/lib/consul"]
+
+CMD ["-server", "-bootstrap", "-client=0.0.0.0", "-ui-dir=/usr/share/consul-ui"]

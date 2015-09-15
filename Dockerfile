@@ -32,11 +32,25 @@ RUN go build \
         -installsuffix cgo \
         -o ./bin/consul
 
-ENV DEST rootfs
-RUN loadbins ./bin/consul
-RUN find ./rootfs -name "*.so" -exec loadbins {} \;
-RUN mkdir rootfs/data
-RUN ls -all rootfs
-COPY Dockerfile.final ./Dockerfile
+ENV ROOTFS rootfs
 
+ENV DEST ${ROOTFS}
+RUN loadbins ./bin/consul
+RUN find ${ROOTFS} -name "*.so" -exec loadbins {} \;
+
+RUN mkdir -p ${ROOTFS}/var/lib/consul ${ROOTFS}/etc/consul ${ROOTFS}/usr/bin
+RUN cp ./bin/consul ${ROOTFS}/usr/bin/consul
+
+# install ui build requirements
+RUN dnf -y install make ruby rubygems ruby-devel rubygem-bundler gcc-c++
+
+# build ui
+RUN cd ./ui && bundle && make dist
+
+# prepare ui files
+RUN mkdir -p ${ROOTFS}/usr/share
+RUN mv ./ui/dist ${ROOTFS}/usr/share/consul-ui
+
+# build image
+COPY Dockerfile.final Dockerfile
 CMD docker build -t alectolytic/consul ${PWD}
