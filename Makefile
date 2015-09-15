@@ -18,7 +18,7 @@ build:
 		-v $(shell which docker):$(shell which docker) \
 		-it $(BUILDER)
 
-tag/$(VERSION): tag
+tag/$(VERSION):
 	@docker tag -f $(REPOSITORY):latest $(REPOSITORY):$(VERSION)
 
 tag: tag/$(VERSION)
