@@ -8,7 +8,7 @@ docker pull alectolytic/consul
 
 You will note that this is a tiny image.
 ```
-$ docker images | grep docker.io/alectolytic/logstash-forwarder
+$ docker images | grep docker.io/alectolytic/consul
 docker.io/alectolytic/consul    latest    abf9a1e6fbd2    3 minutes ago    15.33 MB
 ```
 
