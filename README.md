@@ -9,7 +9,7 @@ docker pull alectolytic/consul
 You will note that this is a tiny image.
 ```
 $ docker images | grep docker.io/alectolytic/logstash-forwarder
-docker.io/alectolytic/consul    latest    46303750e525    3 minutes ago    14.34 MB
+docker.io/alectolytic/consul    latest    abf9a1e6fbd2    3 minutes ago    15.33 MB
 ```
 
 ## Quickstart
@@ -25,13 +25,14 @@ docker run --rm -it alectolytic/consul
 This is equivalent to executing the following.
 
 ```sh
-consul agent -server -bootstrap-expect 1 -data-dir /data
+consul agent -server -bootstrap \
+  -config-dir=/etc/consul -data-dir=/var/lib/consul \
+  -client=0.0.0.0 -ui-dir=/usr/share/consul-ui
 ```
 
 The output looks similar to this.
 
 ```
-==> WARNING: BootstrapExpect Mode is specified as 1; this is the same as Bootstrap mode.
 ==> WARNING: Bootstrap mode enabled! Do not enable unless necessary
 ==> WARNING: It is highly recommended to set GOMAXPROCS higher than 1
 ==> Starting raft data migration...
@@ -41,7 +42,7 @@ The output looks similar to this.
         Node name: '52b7a6700f2c'
        Datacenter: 'dc1'
            Server: true (bootstrap: true)
-      Client Addr: 127.0.0.1 (HTTP: 8500, HTTPS: -1, DNS: 8600, RPC: 8400)
+      Client Addr: 0.0.0.0 (HTTP: 8500, HTTPS: -1, DNS: 8600, RPC: 8400)
      Cluster Addr: 172.17.0.63 (LAN: 8301, WAN: 8302)
    Gossip encrypt: false, RPC-TLS: false, TLS-Incoming: false
             Atlas: <disabled>
@@ -70,7 +71,7 @@ The output looks similar to this.
 
 ```sh
 # create data container
-docker create  --entrypoint=_ -v /data --name consul-data scratch
+docker create  --entrypoint=_ -v /var/lib/consul --name consul-data scratch
 
 # run consul
 docker run --rm -it --volumes-from alectolytic/consul
@@ -79,13 +80,13 @@ docker run --rm -it --volumes-from alectolytic/consul
 #### Custom commands
 
 ```sh
-docker run --rm -it alectolytic/consul agent -server -bootstrap-expect 1 -data-dir /data
+docker run --rm -it alectolytic/consul agent -server -bootstrap -data-dir /var/lib/consul
 ```
 
 #### Configuration file
 
 ```sh
-docker run --rm -it -v /path/to/config.json:/config.json alectolytic/consul agent -config-file=/config.json
+docker run --rm -it -v /path/to/config.json:/etc/consul/config.json alectolytic/consul agent -config-file=/etc/consul/config.json
 ```
 
 **NOTE:** If running on an SELinux enabled system, run `chcon -Rt svirt_sandbox_file_t /path/to/config.json` before staring consul.
