@@ -19,7 +19,7 @@ build:
 		-it $(BUILDER)
 
 tag/$(VERSION):
-	@docker tag -f $(REPOSITORY):latest $(REPOSITORY):$(VERSION)
+	@docker tag -f $(IMAGE):latest $(REPOSITORY):$(VERSION)
 
 tag: tag/$(VERSION)
 	@docker tag -f $(IMAGE) $(REPOSITORY)
