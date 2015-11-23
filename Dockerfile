@@ -42,7 +42,8 @@ RUN mkdir -p ${ROOTFS}/var/lib/consul ${ROOTFS}/etc/consul ${ROOTFS}/usr/bin
 RUN cp ./bin/consul ${ROOTFS}/usr/bin/consul
 
 # install ui build requirements
-RUN dnf -y install make ruby rubygems ruby-devel rubygem-bundler gcc-c++
+RUN dnf -y install \
+    make ruby rubygems ruby-devel rubygem-bundler gcc-c++ redhat-rpm-config
 
 # build ui
 RUN cd ./ui && bundle && make dist
