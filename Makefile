@@ -6,12 +6,18 @@ IMAGE		:= alectolytic/consul
 REPOSITORY	:= docker.io/$(IMAGE)
 VERSION		:= 0.5.2
 
+BUILD_OPTS	:=
+
+ifdef NOCACHE
+	BUILD_OPTS	:= $(BUILD_OPTS) --no-cache
+endif
+
 .PHONY: all build clean tag tag/$(VERSION) push push/$(VERSION)
 
 all: build
 
 build:
-	@docker build -t $(BUILDER) $(ROOT)
+	@docker build $(BUILD_OPTS) -t $(BUILDER) $(ROOT)
 	@docker run \
 		--privileged \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -22,13 +28,19 @@ tag/$(VERSION):
 	@docker tag -f $(IMAGE):latest $(REPOSITORY):$(VERSION)
 
 tag: tag/$(VERSION)
-	@docker tag -f $(IMAGE) $(REPOSITORY)
+	@docker tag -f $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
 
 push/$(VERSION): tag
 	@docker push $(REPOSITORY):$(VERSION)
 
 push: | push/$(VERSION)
 	@docker push $(REPOSITORY):latest
+
+bumpversion:
+	@sed -i s/'ENV VERSION .*$$'/'ENV VERSION $(VERSION)'/ $(ROOT)/Dockerfile
+	@sed -ie s/'^\(VERSION\s*:=\s\).*$$'/'\1$(VERSION)'/ $(ROOT)/Makefile
+	@git add $(ROOT)/Dockerfile $(ROOT)/Makefile
+	@git commit -m "Update to $(VERSION)"
 
 clean:
 	@docker rmi -f $(BUILDER)
