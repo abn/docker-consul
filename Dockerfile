@@ -52,7 +52,7 @@ RUN cd ./ui && bundle && make dist
 
 # prepare ui files
 RUN mkdir -p ${ROOTFS}/usr/share
-RUN mv ./ui/dist ${ROOTFS}/usr/share/consul-ui
+RUN mv ./pkg/web_ui ${ROOTFS}/usr/share/consul-ui
 
 # build image
 COPY Dockerfile.final Dockerfile
