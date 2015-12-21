@@ -17,7 +17,9 @@ endif
 all: build
 
 build:
-	@docker build $(BUILD_OPTS) -t $(BUILDER) $(ROOT)
+	@docker build \
+		--build-arg VERSION=$(VERSION) \
+		$(BUILD_OPTS) -t $(BUILDER) $(ROOT)
 	@docker run \
 		--privileged \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -37,9 +39,8 @@ push: | push/$(VERSION)
 	@docker push $(REPOSITORY):latest
 
 bumpversion:
-	@sed -i s/'ENV VERSION .*$$'/'ENV VERSION $(VERSION)'/ $(ROOT)/Dockerfile
 	@sed -ie s/'^\(VERSION\s*:=\s\).*$$'/'\1$(VERSION)'/ $(ROOT)/Makefile
-	@git add $(ROOT)/Dockerfile $(ROOT)/Makefile
+	@git add $(ROOT)/Makefile
 	@git commit -m "Update to $(VERSION)"
 
 clean:

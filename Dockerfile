@@ -12,8 +12,10 @@ ENV GOPATH /go
 ENV PATH /go/bin:${PATH}
 RUN mkdir -p ${GOPATH}
 
+ARG VERSION
+
 ENV PACKAGE github.com/hashicorp/consul
-ENV VERSION 0.6.0-rc2
+ENV VERSION ${VERSION}
 ENV GO_BUILD_TAGS netgo
 ENV CGO_ENABLED 1
 
