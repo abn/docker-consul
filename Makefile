@@ -42,6 +42,7 @@ bumpversion:
 	@sed -ie s/'^\(VERSION\s*:=\s\).*$$'/'\1$(VERSION)'/ $(ROOT)/Makefile
 	@git add $(ROOT)/Makefile
 	@git commit -m "Update to $(VERSION)"
+	@git diff HEAD^
 
 clean:
 	@docker rmi -f $(BUILDER)
