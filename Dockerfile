@@ -1,59 +1,38 @@
 FROM fedora:latest
 MAINTAINER Arun Neelicattu <arun.neelicattu@gmail.com>
 
-RUN dnf -y upgrade
-
-# install base requirements
-RUN dnf -y install golang git hg 
-RUN dnf -y install findutils
-
-# prepare gopath
-ENV GOPATH /go
-ENV PATH /go/bin:${PATH}
-RUN mkdir -p ${GOPATH}
-
 ARG VERSION
-
 ENV PACKAGE github.com/hashicorp/consul
 ENV VERSION ${VERSION}
-ENV GO_BUILD_TAGS netgo
-ENV CGO_ENABLED 1
+
+ENV URL_PREFIX https://releases.hashicorp.com/consul/${VERSION}
+ENV URL_BINARY ${URL_PREFIX}/consul_${VERSION}_linux_amd64.zip
+ENV URL_WEBUI  ${URL_PREFIX}/consul_${VERSION}_web_ui.zip
 
 COPY ./loadbins /usr/bin/loadbins
 
-RUN go get ${PACKAGE}
+RUN dnf -y upgrade \
+        && dnf -y install unzip findutils \
+        && dnf -y clean all
 
-WORKDIR ${GOPATH}/src/${PACKAGE}
-RUN git checkout -b v${VERSION} v${VERSION}
+ENV WORKSPACE  /build-workspace
+ENV ROOTFS ${WORKSPACE}/rootfs
+ENV BIN_DIR ${ROOTFS}/usr/bin
+ENV WEBUI_DIR ${ROOTFS}/usr/share/consul-ui
+RUN mkdir -p ${WORKSPACE} ${ROOTFS} ${BIN_DIR} ${WEBUI_DIR}
 
-RUN mkdir bin
-RUN go build \
-        -tags "${GO_BUILD_TAGS}" \
-        -ldflags "-s -w -X ${PACKAGE}/version.Version ${VERSION}" \
-        -v -a \
-        -installsuffix cgo \
-        -o ./bin/consul
-
-ENV ROOTFS rootfs
+WORKDIR ${WORKSPACE}
+RUN curl -L -s -o consul.zip ${URL_BINARY} && unzip consul.zip -d ${BIN_DIR}
+RUN curl -L -s -o ui.zip ${URL_WEBUI} && unzip ui.zip -d ${WEBUI_DIR}
 
 ENV DEST ${ROOTFS}
-RUN loadbins ./bin/consul
+RUN loadbins ${BIN_DIR}/consul
 RUN find ${ROOTFS} -name "*.so" -exec loadbins {} \;
 
-RUN mkdir -p ${ROOTFS}/var/lib/consul ${ROOTFS}/etc/consul ${ROOTFS}/usr/bin
-RUN cp ./bin/consul ${ROOTFS}/usr/bin/consul
-
-# install ui build requirements
-RUN dnf -y install \
-    make ruby rubygems ruby-devel rubygem-bundler gcc-c++ redhat-rpm-config
-
-# build ui
-RUN cd ./ui && bundle && make dist
-
-# prepare ui files
-RUN mkdir -p ${ROOTFS}/usr/share
-RUN mv ./pkg/web_ui ${ROOTFS}/usr/share/consul-ui
+# create any extra directories required
+RUN mkdir -p ${ROOTFS}/var/lib/consul ${ROOTFS}/etc/consul
 
 # build image
 COPY Dockerfile.final Dockerfile
 CMD docker build -t alectolytic/consul ${PWD}
+
