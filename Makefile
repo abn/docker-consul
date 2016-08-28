@@ -4,7 +4,7 @@ BUILDER		:= local/builder
 
 IMAGE		:= alectolytic/consul
 REPOSITORY	:= docker.io/$(IMAGE)
-VERSION		:= 0.6.0
+VERSION		:= 0.6.1
 
 BUILD_OPTS	:=
 
